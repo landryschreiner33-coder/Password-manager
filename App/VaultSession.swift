@@ -40,6 +40,9 @@ import VaultCore
             }
             file = VaultFile(url: location)
             exists = FileManager.default.fileExists(atPath: location.path)
+            if exists, let bytes = try? VaultFile(url: location).read(), let savedEnvelope = try? VaultEnvelope.decode(bytes) {
+                biometricEnabled = UserDefaults.standard.bool(forKey: "touchID.\(savedEnvelope.header.id)")
+            }
         } catch { message = "The vault folder is unavailable. Check your Mac’s storage and permissions." }
         let saved = UserDefaults.standard.double(forKey: "idleMinutes")
         if [1.0, 2, 5, 10, 15].contains(saved) { timeoutMinutes = saved; idle.timeout = saved * 60 }
@@ -86,11 +89,16 @@ import VaultCore
         } catch { if generation == token { message = error.localizedDescription } }
         if generation == token { busy = false }
     }
-    func unlock(password: String) async {
+    func unlock(password: String, recovery: Bool = false) async {
         guard !busy, let file else { return }
         busy = true; let token = generation
         do {
             let bytes = try file.read(); let envelope = try VaultEnvelope.decode(bytes)
+            if UserDefaults.standard.bool(forKey: "touchID.\(envelope.header.id)"), !recovery {
+                message = "Use Touch ID to unlock, or explicitly choose master-password recovery."
+                busy = false
+                return
+            }
             let (payload, key) = try await Task.detached { try VaultCrypto.unlock(envelope, password: password) }.value
             guard generation == token else { return }
             accept(payload, key: key, envelope: envelope, bytes: bytes)

@@ -58,6 +58,7 @@ struct UnlockView: View {
     @State private var password = ""
     @State private var confirmation = ""
     @State private var restoring = false
+    @State private var recovering = false
     @FocusState private var focused: Bool
     var body: some View {
         VStack(spacing: 24) {
@@ -67,19 +68,25 @@ struct UnlockView: View {
                 Text(session.exists ? "Unlock your vault to get started." : "Create your Stillwater vault. Everything stays on this Mac.").foregroundStyle(.secondary)
             }
             VStack(alignment: .leading, spacing: 14) {
-                SecureField("Master password", text: $password).textContentType(.password).focused($focused)
-                    .onSubmit { submit() }
-                if !session.exists {
-                    SecureField("Confirm master password", text: $confirmation).onSubmit { submit() }
-                    Text("Use at least 14 characters. Try a long phrase of unrelated words. Keep it somewhere safe: there is no password reset.")
-                        .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                if !session.exists || !session.biometricEnabled || recovering {
+                    SecureField("Master password", text: $password).textContentType(.password).focused($focused)
+                        .onSubmit { submit() }
+                    if !session.exists {
+                        SecureField("Confirm master password", text: $confirmation).onSubmit { submit() }
+                        Text("Use at least 14 characters. Try a long phrase of unrelated words. Keep it somewhere safe: there is no password reset.")
+                            .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    }
+                    Button(action: submit) {
+                        HStack { Spacer(); if session.busy { ProgressView().controlSize(.small) }; Text(session.exists ? (recovering ? "Recover with Master Password" : "Unlock Vault") : "Create Vault"); Spacer() }
+                    }.buttonStyle(.borderedProminent).disabled(session.busy || password.isEmpty || (!session.exists && password != confirmation))
                 }
-                Button(action: submit) {
-                    HStack { Spacer(); if session.busy { ProgressView().controlSize(.small) }; Text(session.exists ? "Unlock Vault" : "Create Vault"); Spacer() }
-                }.buttonStyle(.borderedProminent).disabled(session.busy || password.isEmpty || (!session.exists && password != confirmation))
-                if session.exists {
+                if session.exists && session.biometricEnabled {
                     Button { Task { await session.unlockWithTouchID() } } label: { Label("Unlock with Touch ID", systemImage: "touchid").frame(maxWidth: .infinity) }
                         .disabled(session.busy)
+                    Button(recovering ? "Return to Touch ID" : "Recover with Master Password…") {
+                        password = ""; recovering.toggle(); focused = recovering
+                    }.buttonStyle(.link).disabled(session.busy)
+                    if recovering { Text("Recovery uses your vault’s master password. Touch ID remains enabled for normal unlocking.").font(.caption).foregroundStyle(.secondary) }
                 }
             }.textFieldStyle(.roundedBorder).controlSize(.large).frame(width: 360)
             Button("Restore an Encrypted Backup…") { restoring = true }.buttonStyle(.link).disabled(session.busy)
@@ -94,7 +101,7 @@ struct UnlockView: View {
     }
     private func submit() {
         guard !session.busy, !password.isEmpty, session.exists || password == confirmation else { return }
-        let value = password; password = ""; confirmation = ""
-        Task { if session.exists { await session.unlock(password: value) } else { await session.create(password: value) } }
+        let value = password; let recovery = recovering; password = ""; confirmation = ""
+        Task { if session.exists { await session.unlock(password: value, recovery: recovery) } else { await session.create(password: value) } }
     }
 }

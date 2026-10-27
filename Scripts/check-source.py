@@ -14,7 +14,7 @@ for name, expected in manifest.items():
 for name in ['App/Info.plist','App/Stillwater.entitlements']:
     with (root/name).open('rb') as handle: plistlib.load(handle)
 entitlements=plistlib.loads((root/'App/Stillwater.entitlements').read_bytes())
-assert entitlements == {'com.apple.security.app-sandbox': True, 'com.apple.security.files.user-selected.read-write': True}
+assert entitlements == {'com.apple.security.app-sandbox': True, 'com.apple.security.files.user-selected.read-write': True, 'keychain-access-groups': ['$(AppIdentifierPrefix)app.stillwater.passwords']}
 project=root/'Stillwater.xcodeproj/project.pbxproj'
 before=project.read_bytes()
 subprocess.run(['python3',str(root/'Scripts/generate-project.py')],check=True)

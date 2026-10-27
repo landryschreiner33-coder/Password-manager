@@ -10,6 +10,16 @@ private final class CancelledKeychain: BiometricKeyStore {
     func load(id: UUID, context: LAContext) throws -> SymmetricKey { throw KeychainError.cancelled }
     func remove(id: UUID) throws {}
 }
+private final class MemoryKeychain: BiometricKeyStore {
+    var key: SymmetricKey?
+    var cancelled = false
+    func save(_ key: SymmetricKey, id: UUID) throws { self.key = key }
+    func load(id: UUID, context: LAContext) throws -> SymmetricKey {
+        guard !cancelled, let key else { throw KeychainError.cancelled }
+        return key
+    }
+    func remove(id: UUID) throws { key = nil }
+}
 @MainActor final class SessionTests: XCTestCase {
     func testTouchIDCancellationLeavesVaultLockedAndMasterPasswordWorks() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -47,6 +57,38 @@ private final class CancelledKeychain: BiometricKeyStore {
         session.lock()
         await session.unlock(password: "Fictional backup river 258!")
         XCTAssertEqual(session.payload, payload)
+    }
+    func testEnrolledVaultRequiresTouchIDWithExplicitPasswordRecoveryAfterRestart() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("vault")
+        let store = MemoryKeychain()
+        let password = "Fictional garden lantern 942!"
+        let session = VaultSession(keychain: store, url: url, monitor: false)
+        await session.create(password: password)
+        let id = try VaultEnvelope.decode(VaultFile(url: url).read()).header.id
+        defer { UserDefaults.standard.removeObject(forKey: "touchID.\(id)") }
+        await session.setBiometrics(true, password: password)
+        XCTAssertTrue(session.biometricEnabled)
+        session.lock()
+        let restarted = VaultSession(keychain: store, url: url, monitor: false)
+        XCTAssertTrue(restarted.biometricEnabled)
+        await restarted.unlock(password: password)
+        XCTAssertFalse(restarted.unlocked)
+        XCTAssertFalse(restarted.busy)
+        store.cancelled = true
+        await restarted.unlockWithTouchID()
+        XCTAssertFalse(restarted.unlocked)
+        await restarted.unlock(password: "wrong password", recovery: true)
+        XCTAssertFalse(restarted.unlocked)
+        await restarted.unlock(password: password, recovery: true)
+        XCTAssertTrue(restarted.unlocked)
+        XCTAssertTrue(restarted.biometricEnabled)
+        restarted.lock()
+        store.cancelled = false
+        await restarted.unlockWithTouchID()
+        XCTAssertTrue(restarted.unlocked)
     }
     func testClipboardDoesNotEraseLaterCopy() {
         let clipboard = SensitiveClipboard()

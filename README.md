@@ -8,7 +8,7 @@ A native, offline password vault for macOS 14 and later, written in Swift and Sw
 
 1. Install Xcode 16 or newer, open it once, and install its command-line tools.
 2. Open `Stillwater.xcodeproj`. Select the **Stillwater** scheme and **My Mac**.
-3. In the Stillwater target's **Signing & Capabilities**, choose your development team. Keep App Sandbox and Hardened Runtime enabled. Only user-selected file access is requested; the app has no network entitlement. The local Swift package includes the pinned libsodium XCFramework, so building needs no package downloads.
+3. In the Stillwater target's **Signing & Capabilities**, choose your development team. Keep App Sandbox, Hardened Runtime, and Keychain Sharing enabled. The checked-in entitlement declares `$(AppIdentifierPrefix)app.stillwater.passwords`; your signing profile must authorize this group. Only user-selected file access is requested; the app has no network entitlement. The local Swift package includes the pinned libsodium XCFramework, so building needs no package downloads.
 4. Press Command-R. For everyday local installation, build Release, locate `Stillwater.app` under Products, reveal it in Finder, and copy it to Applications. Use a consistently signed build for Keychain access. Do not disable Gatekeeper or system integrity protections.
 5. For distribution, use a Developer ID signed Release archive, notarize it with Xcode Organizer, staple it, and verify its signature and entitlements. Those release steps require your Apple account and have not been performed here.
 
@@ -37,7 +37,7 @@ The app opens in dark mode with charcoal surfaces and restrained blue accents. C
 
 Create a master password of at least 14 characters; a unique phrase of several unrelated words is recommended. There is no reset. Store this phrase safely outside the app. Use **+** or Command-N to add an account, Command-F to find one, Command-E to edit, and Shift-Command-L to lock. Passwords are hidden until revealed; reveals close after 15 seconds. Copies clear after 30 seconds, or immediately on lock, only when the clipboard is unchanged.
 
-Use the sidebar to organize favorites and folders. Removing a folder keeps its accounts. Deletion requires confirmation. Settings controls the inactivity timeout (1–15 minutes), master password changes, and Touch ID. Master-password unlock always remains available if Touch ID fails. Changing your master password rotates the vault key, locks the vault, and disables Touch ID; enable it again after unlocking.
+Use the sidebar to organize favorites and folders. Removing a folder keeps its accounts. Deletion requires confirmation. Settings controls the inactivity timeout (1–15 minutes), master password changes, and Touch ID. Once enabled, Touch ID is required for normal unlocking. Choose **Recover with Master Password…** explicitly to recover without a fingerprint; recovery does not disable Touch ID. Changing your master password rotates the vault key, locks the vault, and disables Touch ID; enable it again after unlocking.
 
 ## Import
 

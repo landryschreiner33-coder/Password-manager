@@ -1,0 +1,19 @@
+name: macOS validation
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Verify vendored dependency
+        run: python3 Scripts/check-source.py
+      - name: Upstream Argon2 vectors
+        run: Scripts/check-argon2.sh
+      - name: Crypto and storage tests
+        run: swift test --package-path Core
+      - name: Compile app and run session tests
+        run: xcodebuild test -project Stillwater.xcodeproj -scheme Stillwater -destination 'platform=macOS' -derivedDataPath DerivedData CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO
+      - name: Release build
+        run: xcodebuild build -project Stillwater.xcodeproj -scheme Stillwater -configuration Release -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO

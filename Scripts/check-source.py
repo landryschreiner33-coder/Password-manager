@@ -32,5 +32,10 @@ for object_id, body in objects.items():
         package = re.search(r'\bpackage = ([A-F0-9]{24});', body)
         if package:
             assert 'isa = XCRemoteSwiftPackageReference;' in objects[package[1]], 'Product dependency has a non-remote package reference'
+# Match SwiftPM's Debug architecture to the selected Mac; Release remains universal.
+for body in objects.values():
+    if 'isa = XCBuildConfiguration;' in body and 'SDKROOT = "macosx";' in body:
+        expected = 'YES' if 'name = Debug;' in body else 'NO'
+        assert f'ONLY_ACTIVE_ARCH = "{expected}";' in body, 'App and package architecture settings may diverge'
 ET.parse(root/'Stillwater.xcodeproj/xcshareddata/xcschemes/Stillwater.xcscheme')
 print(f'PASS: {len(manifest)} pinned dependency files, plists, entitlements, scheme XML, and deterministic project references.')

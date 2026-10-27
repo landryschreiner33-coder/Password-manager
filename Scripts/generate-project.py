@@ -37,7 +37,7 @@ for scope in ['project','app','test']:
     for mode in ['Debug','Release']:
         values = {}
         if scope == 'project':
-            values = dict(MACOSX_DEPLOYMENT_TARGET='14.0', SDKROOT='macosx', SWIFT_VERSION='5.0', CLANG_ENABLE_MODULES='YES', CLANG_ENABLE_OBJC_ARC='YES', GCC_C_LANGUAGE_STANDARD='gnu11', ENABLE_STRICT_OBJC_MSGSEND='YES', SWIFT_OPTIMIZATION_LEVEL='-Onone' if mode == 'Debug' else '-O', SWIFT_COMPILATION_MODE='singlefile' if mode == 'Debug' else 'wholemodule', ENABLE_TESTABILITY='YES' if mode == 'Debug' else 'NO', DEBUG_INFORMATION_FORMAT='dwarf' if mode == 'Debug' else 'dwarf-with-dsym', GCC_OPTIMIZATION_LEVEL='0' if mode == 'Debug' else 's')
+            values = dict(MACOSX_DEPLOYMENT_TARGET='14.0', SDKROOT='macosx', SWIFT_VERSION='5.0', ONLY_ACTIVE_ARCH='YES' if mode == 'Debug' else 'NO', CLANG_ENABLE_MODULES='YES', CLANG_ENABLE_OBJC_ARC='YES', GCC_C_LANGUAGE_STANDARD='gnu11', ENABLE_STRICT_OBJC_MSGSEND='YES', SWIFT_OPTIMIZATION_LEVEL='-Onone' if mode == 'Debug' else '-O', SWIFT_COMPILATION_MODE='singlefile' if mode == 'Debug' else 'wholemodule', ENABLE_TESTABILITY='YES' if mode == 'Debug' else 'NO', DEBUG_INFORMATION_FORMAT='dwarf' if mode == 'Debug' else 'dwarf-with-dsym', GCC_OPTIMIZATION_LEVEL='0' if mode == 'Debug' else 's')
         elif scope == 'app':
             values = dict(PRODUCT_NAME='Stillwater', PRODUCT_BUNDLE_IDENTIFIER='app.stillwater.passwords', INFOPLIST_FILE='App/Info.plist', CODE_SIGN_ENTITLEMENTS='App/Stillwater.entitlements', CODE_SIGN_STYLE='Automatic', ENABLE_APP_SANDBOX='YES', ENABLE_HARDENED_RUNTIME='YES', COMBINE_HIDPI_IMAGES='YES', LD_RUNPATH_SEARCH_PATHS='$(inherited) @executable_path/../Frameworks', SWIFT_EMIT_LOC_STRINGS='YES')
         else:

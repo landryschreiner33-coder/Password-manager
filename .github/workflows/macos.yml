@@ -14,6 +14,6 @@ jobs:
       - name: Crypto and storage tests
         run: swift test --package-path Core
       - name: Compile app and run session tests
-        run: xcodebuild test -project Stillwater.xcodeproj -scheme Stillwater -destination 'platform=macOS' -derivedDataPath DerivedData CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO
+        run: Scripts/run-xcode-check.sh test -project Stillwater.xcodeproj -scheme Stillwater -destination 'platform=macOS' -derivedDataPath DerivedData CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO
       - name: Release build
-        run: xcodebuild build -project Stillwater.xcodeproj -scheme Stillwater -configuration Release -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO
+        run: Scripts/run-xcode-check.sh build -project Stillwater.xcodeproj -scheme Stillwater -configuration Release -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO

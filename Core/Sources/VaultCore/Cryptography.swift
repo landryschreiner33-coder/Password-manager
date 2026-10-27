@@ -32,7 +32,7 @@ public struct KDFParameters: Codable, Equatable {
         guard salt.count == 16, !password.isEmpty, password.utf8.count <= 1024 else { throw VaultError.invalidFile }
         var passwordBytes = Array(password.utf8)
         var output = Data(count: 32)
-        defer { passwordBytes.withUnsafeMutableBytes { $0.initializeMemory(as: UInt8.self, repeating: 0) }; output.resetBytes(in: 0..<output.count) }
+        defer { _ = passwordBytes.withUnsafeMutableBytes { $0.initializeMemory(as: UInt8.self, repeating: 0) }; output.resetBytes(in: 0..<output.count) }
         guard sodium_init() >= 0 else { throw VaultError.random }
         let code = passwordBytes.withUnsafeBytes { p in
             salt.withUnsafeBytes { s in

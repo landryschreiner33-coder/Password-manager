@@ -94,7 +94,7 @@ import VaultCore
         busy = true; let token = generation
         do {
             let bytes = try file.read(); let envelope = try VaultEnvelope.decode(bytes)
-            if UserDefaults.standard.bool(forKey: "touchID.\(envelope.header.id)"), !recovery {
+            if !recovery {
                 message = "Use Touch ID to unlock, or explicitly choose master-password recovery."
                 busy = false
                 return

@@ -1,6 +1,6 @@
 # Stillwater
 
-A native, offline password vault for macOS 14 and later, written in Swift and SwiftUI. Accounts, folders, favorites, and private notes are encrypted together. The app includes password generation, mapped CSV import, encrypted backups, automatic locking, and optional Touch ID.
+A native, offline password vault for macOS 14 and later, written in Swift and SwiftUI. Accounts, folders, favorites, and private notes are encrypted together. The app includes password generation, mapped CSV import, encrypted backups, automatic locking, and Touch ID unlocking with master-password recovery.
 
 **Unaudited development build. Do not entrust real passwords to it until the Mac validation checklist and independent security review are complete.** The project was authored on Linux. [Automated macOS validation](https://github.com/landryschreiner33-coder/Password-manager/actions/runs/40522887680) now passes Core testing, app compilation and session testing, and Release compilation. A notarized installer is not provided; physical-Mac security and usability checks remain required.
 
@@ -37,7 +37,7 @@ The app opens in dark mode with charcoal surfaces and restrained blue accents. C
 
 Create a master password of at least 14 characters; a unique phrase of several unrelated words is recommended. There is no reset. Store this phrase safely outside the app. Use **+** or Command-N to add an account, Command-F to find one, Command-E to edit, and Shift-Command-L to lock. Passwords are hidden until revealed; reveals close after 15 seconds. Copies clear after 30 seconds, or immediately on lock, only when the clipboard is unchanged.
 
-Use the sidebar to organize favorites and folders. Removing a folder keeps its accounts. Deletion requires confirmation. Settings controls the inactivity timeout (1–15 minutes), master password changes, and Touch ID. Once enabled, Touch ID is required for normal unlocking. Choose **Recover with Master Password…** explicitly to recover without a fingerprint; recovery does not disable Touch ID. Changing your master password rotates the vault key, locks the vault, and disables Touch ID; enable it again after unlocking.
+Use the sidebar to organize favorites and folders. Removing a folder keeps its accounts. Deletion requires confirmation. Settings controls the inactivity timeout (1–15 minutes), master password changes, and Touch ID. Touch ID is required for normal unlocking. If it has not been enabled yet, use master-password recovery and enable it in Settings. Choose **Recover with Master Password…** explicitly to recover without a fingerprint; recovery does not disable Touch ID. Changing your master password rotates the vault key, locks the vault, and disables Touch ID; enable it again after unlocking.
 
 ## Import
 

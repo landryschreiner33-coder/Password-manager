@@ -68,7 +68,7 @@ struct UnlockView: View {
                 Text(session.exists ? "Unlock your vault to get started." : "Create your Stillwater vault. Everything stays on this Mac.").foregroundStyle(.secondary)
             }
             VStack(alignment: .leading, spacing: 14) {
-                if !session.exists || !session.biometricEnabled || recovering {
+                if !session.exists || recovering {
                     SecureField("Master password", text: $password).textContentType(.password).focused($focused)
                         .onSubmit { submit() }
                     if !session.exists {
@@ -80,9 +80,13 @@ struct UnlockView: View {
                         HStack { Spacer(); if session.busy { ProgressView().controlSize(.small) }; Text(session.exists ? (recovering ? "Recover with Master Password" : "Unlock Vault") : "Create Vault"); Spacer() }
                     }.buttonStyle(.borderedProminent).disabled(session.busy || password.isEmpty || (!session.exists && password != confirmation))
                 }
-                if session.exists && session.biometricEnabled {
+                if session.exists {
+                    if session.biometricEnabled {
                     Button { Task { await session.unlockWithTouchID() } } label: { Label("Unlock with Touch ID", systemImage: "touchid").frame(maxWidth: .infinity) }
                         .disabled(session.busy)
+                    } else {
+                        Text("Recover with your master password, then enable Touch ID in Settings for normal unlocking.").font(.callout).foregroundStyle(.secondary)
+                    }
                     Button(recovering ? "Return to Touch ID" : "Recover with Master Password…") {
                         password = ""; recovering.toggle(); focused = recovering
                     }.buttonStyle(.link).disabled(session.busy)

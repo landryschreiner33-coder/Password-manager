@@ -31,7 +31,7 @@ private final class MemoryKeychain: BiometricKeyStore {
         session.lock(); XCTAssertNil(session.payload)
         await session.unlockWithTouchID(); XCTAssertFalse(session.unlocked); XCTAssertFalse(session.busy)
         session.message = nil
-        await session.unlock(password: "Fictional garden lantern 942!"); XCTAssertTrue(session.unlocked)
+        await session.unlock(password: "Fictional garden lantern 942!", recovery: true); XCTAssertTrue(session.unlocked)
         session.timeoutMinutes = 0; session.checkIdle(); XCTAssertFalse(session.unlocked)
     }
     func testRestoreRejectsInvalidBackupAndWorksWithoutOriginalKeychain() async throws {
@@ -55,7 +55,7 @@ private final class MemoryKeychain: BiometricKeyStore {
         XCTAssertEqual(session.payload, payload)
         XCTAssertFalse(session.biometricEnabled)
         session.lock()
-        await session.unlock(password: "Fictional backup river 258!")
+        await session.unlock(password: "Fictional backup river 258!", recovery: true)
         XCTAssertEqual(session.payload, payload)
     }
     func testEnrolledVaultRequiresTouchIDWithExplicitPasswordRecoveryAfterRestart() async throws {

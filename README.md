@@ -2,7 +2,7 @@
 
 A native, offline password vault for macOS 14 and later, written in Swift and SwiftUI. Accounts, folders, favorites, and private notes are encrypted together. The app includes password generation, mapped CSV import, encrypted backups, automatic locking, and optional Touch ID.
 
-**Unaudited development build. Do not entrust real passwords to it until the Mac validation checklist and independent security review are complete.** The project was authored on Linux without Swift, Xcode, or macOS frameworks. No runnable Mac binary or successful Mac build is claimed.
+**Unaudited development build. Do not entrust real passwords to it until the Mac validation checklist and independent security review are complete.** The project was authored on Linux. [Automated macOS validation](https://github.com/landryschreiner33-coder/Password-manager/actions/runs/40522887680) now passes Core testing, app compilation and session testing, and Release compilation. A notarized installer is not provided; physical-Mac security and usability checks remain required.
 
 ## Build and install on your Mac
 
@@ -25,7 +25,11 @@ xcodebuild build -project Stillwater.xcodeproj -scheme Stillwater \
   -configuration Release -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO
 ```
 
-The unsigned Release command is a compile check, not a distributable release. Configure your signing team in Xcode for real Keychain and Touch ID testing. The shared scheme includes app session tests; the Core test suite runs with `swift test`. CI mirrors these commands, but has not run in this workspace. `Scripts/generate-project.py` regenerates the checked-in project without XcodeGen or other dependencies.
+The unsigned Release command is a compile check, not a distributable release. Configure your signing team in Xcode for real Keychain and Touch ID testing. The shared scheme includes app session tests; the Core test suite runs with `swift test`. CI has run these commands successfully on a GitHub macOS runner; see the linked validation run above. `Scripts/generate-project.py` regenerates the checked-in project without XcodeGen or other dependencies.
+
+## Updating after the VaultCore build error
+
+Quit Xcode, download a fresh project ZIP from GitHub, and open `Stillwater.xcodeproj` inside the newly extracted folder. Select Stillwater / My Mac and press Command-R. The corrected Debug settings build for the active Mac architecture, matching the local Swift package; Release keeps universal architecture support. The prior ZIP could try to compile the app for Intel while its package had only an Apple Silicon module. This correction does not change the vault format or storage location.
 
 ## Everyday use
 

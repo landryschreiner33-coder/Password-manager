@@ -14,7 +14,7 @@ Review performed during development on 2026-10-26. This is self-review, not an i
 - CSV mapping must use distinct columns, rejects malformed quoting and invalid/oversized rows, and imports only after an explicit preview and duplicate choice. Duplicate handling never updates an existing record.
 - Restore authenticates the entire backup before replacing the current vault. Damaged current envelopes can be replaced with an authenticated backup. No original Keychain item is required.
 - First-run creation checks password confirmation inside the action as well as disabling the button, so Return cannot bypass confirmation. Lock changes a view epoch even while already locked, removing partially entered master passwords and any locked-screen restore sheet.
-- Source review found and corrected a non-optional sidebar selection binding that would not match SwiftUI's List API. Full Swift type checking is still required on a Mac.
+- Source review found and corrected a non-optional sidebar selection binding that would not match SwiftUI's List API. The corrected app subsequently passed Swift compilation on the GitHub macOS runner (see the update below).
 
 ## Checks executed here
 
@@ -27,9 +27,9 @@ Review performed during development on 2026-10-26. This is self-review, not an i
 
 ## Not executed; release gates
 
-No Swift compiler, Xcode, macOS, Touch ID hardware, signing identity or notarization service was available. The 13 Core XCTest cases and 3 app XCTest cases are authored but unrun. AES-GCM behavior, Swift type checking, app build, actual UI behavior, Accessibility, Keychain enforcement, sleep/screen-lock notifications, clipboard propagation, cross-device backup restoration, power-loss behavior and release signing have NOT been validated here. No working Mac binary is delivered and CI results are not claimed.
+The local authoring machine has no Swift compiler or Xcode. Subsequent GitHub macOS validation successfully completed the Core test command, app build/session-test command, and Release build. The suites define 13 Core XCTest cases and 3 app XCTest cases; the public job page confirms successful steps, but individual result-bundle counts were not independently downloaded. Actual UI behavior, Accessibility, hardware Keychain enforcement, sleep/screen-lock notifications, clipboard propagation across devices, cross-device backup restoration, power-loss behavior and distribution signing remain unverified. No notarized installer is delivered.
 
-Apple documentation URLs were denied by the network proxy. OWASP's official source was retrieved from GitHub. Verify current Apple API guidance and the exact Keychain/clipboard/lock configuration in a signed Mac build. The app uses maintained libsodium 1.0.22 from the pinned Swift distribution; the older PHC code is retained only as an independent test fixture. The precompiled Apple framework remains to be verified on a Mac (see DEPENDENCIES.md).
+Apple documentation URLs were denied by the network proxy. OWASP's official source was retrieved from GitHub. Verify current Apple API guidance and the exact Keychain/clipboard/lock configuration in a signed Mac build. The app uses maintained libsodium 1.0.22 from the pinned Swift distribution; the older PHC code is retained only as an independent test fixture. The Apple framework now compiles and links in the Mac validation workflow; independent artifact provenance/rebuild review remains a release gate (see DEPENDENCIES.md).
 
 Storage's digest comparison detects ordinary accidental concurrent changes; it is not an interprocess transaction lock or a defense against an adversarial process changing files between comparison and rename. The app prohibits ordinary duplicate instances via Info.plist. An actively compromised Mac is outside the threat model. Directory fsync is best-effort after the rename commit; do not treat it as a power-loss guarantee on every filesystem.
 
@@ -37,4 +37,10 @@ Complete [MAC_VALIDATION.md](MAC_VALIDATION.md) and independent security review 
 
 ## Appearance revision
 
-Dark appearance now defaults on, with persistent Dark/Light/System selection shared by the app and settings. Added adaptive opaque charcoal surfaces, contrast-aware card borders, a visible search focus outline, compact native list rows, clearer detail actions, and username copying through the existing sensitive clipboard service. Native controls and list selection retain keyboard and accessibility behavior. Updated project registration and re-ran Swift syntax parsing plus project/dependency checks successfully. Visual appearance, type checking, VoiceOver and native theme propagation still require a Mac; the supplied illustration is not an app capture.
+Dark appearance now defaults on, with persistent Dark/Light/System selection shared by the app and settings. Added adaptive opaque charcoal surfaces, contrast-aware card borders, a visible search focus outline, compact native list rows, clearer detail actions, and username copying through the existing sensitive clipboard service. Native controls and list selection retain keyboard and accessibility behavior. Updated project registration and re-ran Swift syntax parsing plus project/dependency checks successfully. Visual appearance, VoiceOver and native theme propagation still require hands-on Mac checks; the supplied illustration is not an app capture.
+
+## Mac build correction — 2026-10-27
+
+The initial app build failed because it requested `VaultCore` for `x86_64-apple-macos` while the package build had produced only `arm64-apple-macos`. Set project Debug `ONLY_ACTIVE_ARCH=YES` to match SwiftPM and the selected Mac. Release explicitly retains `ONLY_ACTIVE_ARCH=NO`. Also removed invalid remote-package-reference fields from local product dependencies and explicitly discarded the return value of key-buffer clearing to resolve its warning. Static project checks now reject both configuration regressions.
+
+[GitHub macOS workflow run](https://github.com/landryschreiner33-coder/Password-manager/actions/runs/40522887680), commit `847870f`, completed successfully: dependency verification, upstream Argon2 vectors, Core crypto/storage tests, app compilation and session tests, and Release build. Compiler failures are now surfaced as run annotations while preserving `xcodebuild`'s exit status. These are automated build/test results, not an independent security audit or hardware Touch ID certification.

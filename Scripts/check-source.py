@@ -23,5 +23,14 @@ text=project.read_text()
 defined=re.findall(r'^([A-F0-9]{24}) = ',text,re.M)
 assert len(defined)==len(set(defined))
 assert set(re.findall(r'\b[A-F0-9]{24}\b',text))==set(defined), 'Dangling project references'
+# XCSwiftPackageProductDependency.package is a remote-package reference, not
+# XCLocalSwiftPackageReference. An invalid edge can leave the app unable to load
+# a module that SwiftPM built successfully.
+objects = dict(re.findall(r'^([A-F0-9]{24}) = \{ (.*?) \};$', text, re.M))
+for object_id, body in objects.items():
+    if 'isa = XCSwiftPackageProductDependency;' in body:
+        package = re.search(r'\bpackage = ([A-F0-9]{24});', body)
+        if package:
+            assert 'isa = XCRemoteSwiftPackageReference;' in objects[package[1]], 'Product dependency has a non-remote package reference'
 ET.parse(root/'Stillwater.xcodeproj/xcshareddata/xcschemes/Stillwater.xcscheme')
 print(f'PASS: {len(manifest)} pinned dependency files, plists, entitlements, scheme XML, and deterministic project references.')

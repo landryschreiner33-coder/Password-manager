@@ -21,8 +21,10 @@ obj('testgroup', f'isa = PBXGroup; name = Tests; children = {listing([ident(str(
 obj('products', f'isa = PBXGroup; name = Products; children = ({ident("product")}, {ident("testproduct")}); sourceTree = "<group>";')
 obj('group', f'isa = PBXGroup; children = ({ident("appgroup")}, {ident("testgroup")}, {ident("products")}); sourceTree = "<group>";')
 obj('package', 'isa = XCLocalSwiftPackageReference; relativePath = Core;')
+# The product's optional package field accepts XCRemoteSwiftPackageReference only.
+# Local packages resolve by product name through PBXProject.packageReferences.
 for target, files in [('app',app),('test',tests)]:
-    obj(target+'package', f'isa = XCSwiftPackageProductDependency; package = {ident("package")}; productName = VaultCore;')
+    obj(target+'package', f'isa = XCSwiftPackageProductDependency; productName = VaultCore;')
     obj(target+'framework', f'isa = PBXBuildFile; productRef = {ident(target+"package")};')
     obj(target+'sources', f'isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = {listing([ident("build:"+str(p.relative_to(root))) for p in files])}; runOnlyForDeploymentPostprocessing = 0;')
     obj(target+'frameworks', f'isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ({ident(target+"framework")}); runOnlyForDeploymentPostprocessing = 0;')

@@ -14,6 +14,15 @@ jobs:
       - name: Crypto and storage tests
         run: swift test --package-path Core
       - name: Compile app and run session tests
-        run: Scripts/run-xcode-check.sh test -project Stillwater.xcodeproj -scheme Stillwater -destination 'platform=macOS' -derivedDataPath DerivedData CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO
+        # Session tests inject a mock Keychain. A real access group requires a
+        # provisioning profile and cannot be launched with CI's ad-hoc signature.
+        run: |
+          python3 - <<'PYTHON'
+          import os, pathlib, plistlib
+          entitlements = plistlib.loads(pathlib.Path('App/Stillwater.entitlements').read_bytes())
+          entitlements.pop('keychain-access-groups')
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'Stillwater-CI.entitlements').write_bytes(plistlib.dumps(entitlements))
+          PYTHON
+          Scripts/run-xcode-check.sh test -project Stillwater.xcodeproj -scheme Stillwater -destination 'platform=macOS' -derivedDataPath DerivedData CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGN_ENTITLEMENTS="$RUNNER_TEMP/Stillwater-CI.entitlements"
       - name: Release build
         run: Scripts/run-xcode-check.sh build -project Stillwater.xcodeproj -scheme Stillwater -configuration Release -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO

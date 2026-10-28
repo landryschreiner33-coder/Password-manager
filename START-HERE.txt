@@ -1,0 +1,22 @@
+OPEN STILLWATER ON YOUR MAC
+
+1. Double-click Stillwater.xcodeproj inside this folder.
+2. In Xcode select the Stillwater target, then Signing & Capabilities.
+3. Choose your Personal Team with Automatically manage signing checked.
+4. Select the same team for StillwaterTests if Xcode asks.
+5. Select Stillwater / My Mac at the top, then press Command-R.
+
+The app icon is already installed. All permissions files are included.
+Keep this whole project folder together: App and Core must stay next to
+Stillwater.xcodeproj. Do not move the xcodeproj out on its own.
+
+INSTALL THE APP
+After a successful build, open Products in Xcode's left sidebar.
+Right-click Stillwater.app and choose Show in Finder.
+Quit Stillwater, copy the built app to Applications, then open that copy.
+You can close Xcode. Right-click the running Dock icon and choose
+Options > Keep in Dock.
+
+This project does not include your personal Apple signing certificate.
+You select your team locally in Xcode. Your vault is stored separately
+from this project folder; do not delete or reset the vault to fix a build.

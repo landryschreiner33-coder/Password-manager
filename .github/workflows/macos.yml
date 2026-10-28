@@ -26,3 +26,17 @@ jobs:
           Scripts/run-xcode-check.sh test -project Stillwater.xcodeproj -scheme Stillwater -destination 'platform=macOS' -derivedDataPath DerivedData CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGN_ENTITLEMENTS="$RUNNER_TEMP/Stillwater-CI.entitlements"
       - name: Release build
         run: Scripts/run-xcode-check.sh build -project Stillwater.xcodeproj -scheme Stillwater -configuration Release -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO
+      - name: Verify packaged Dock icon
+        run: |
+          python3 - <<'PYTHON'
+          import pathlib, plistlib
+          for configuration in ('Debug', 'Release'):
+              contents = pathlib.Path('DerivedData/Build/Products') / configuration / 'Stillwater.app/Contents'
+              info = plistlib.loads((contents / 'Info.plist').read_bytes())
+              icon = info['CFBundleIconFile']
+              if not icon.endswith('.icns'):
+                  icon += '.icns'
+              data = (contents / 'Resources' / icon).read_bytes()
+              assert data[:4] == b'icns' and len(data) > 8, configuration
+              print(f'PASS: {configuration} app includes {icon} and its Info.plist points to it.')
+          PYTHON

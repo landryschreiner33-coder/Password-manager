@@ -12,11 +12,12 @@ app = sorted((root/'App').glob('*.swift')); tests = sorted((root/'AppTests').glo
 for path in app + tests:
     rel = str(path.relative_to(root)); obj(rel, f'isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = {q(rel)}; sourceTree = SOURCE_ROOT;')
     obj('build:'+rel, f'isa = PBXBuildFile; fileRef = {ident(rel)};')
-for filename, filetype in [('App/Info.plist','text.plist.xml'),('App/Stillwater.entitlements','text.plist.entitlements')]:
+for filename, filetype in [('App/Info.plist','text.plist.xml'),('App/Stillwater.entitlements','text.plist.entitlements'),('App/Assets.xcassets','folder.assetcatalog')]:
     obj(filename, f'isa = PBXFileReference; lastKnownFileType = {filetype}; path = {q(filename)}; sourceTree = SOURCE_ROOT;')
+obj('build:assets', f'isa = PBXBuildFile; fileRef = {ident("App/Assets.xcassets")};')
 obj('product', 'isa = PBXFileReference; explicitFileType = wrapper.application; path = Stillwater.app; sourceTree = BUILT_PRODUCTS_DIR;')
 obj('testproduct', 'isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = StillwaterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR;')
-obj('appgroup', f'isa = PBXGroup; name = App; children = {listing([ident(str(p.relative_to(root))) for p in app]+[ident("App/Info.plist"),ident("App/Stillwater.entitlements")])}; sourceTree = "<group>";')
+obj('appgroup', f'isa = PBXGroup; name = App; children = {listing([ident(str(p.relative_to(root))) for p in app]+[ident("App/Info.plist"),ident("App/Stillwater.entitlements"),ident("App/Assets.xcassets")])}; sourceTree = "<group>";')
 obj('testgroup', f'isa = PBXGroup; name = Tests; children = {listing([ident(str(p.relative_to(root))) for p in tests])}; sourceTree = "<group>";')
 obj('products', f'isa = PBXGroup; name = Products; children = ({ident("product")}, {ident("testproduct")}); sourceTree = "<group>";')
 obj('group', f'isa = PBXGroup; children = ({ident("appgroup")}, {ident("testgroup")}, {ident("products")}); sourceTree = "<group>";')
@@ -28,7 +29,7 @@ for target, files in [('app',app),('test',tests)]:
     obj(target+'framework', f'isa = PBXBuildFile; productRef = {ident(target+"package")};')
     obj(target+'sources', f'isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = {listing([ident("build:"+str(p.relative_to(root))) for p in files])}; runOnlyForDeploymentPostprocessing = 0;')
     obj(target+'frameworks', f'isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ({ident(target+"framework")}); runOnlyForDeploymentPostprocessing = 0;')
-    obj(target+'resources', 'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;')
+    obj(target+'resources', f'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = {listing([ident("build:assets")] if target == "app" else [])}; runOnlyForDeploymentPostprocessing = 0;')
 obj('proxy', f'isa = PBXContainerItemProxy; containerPortal = {ident("project")}; proxyType = 1; remoteGlobalIDString = {ident("app")}; remoteInfo = Stillwater;')
 obj('dependency', f'isa = PBXTargetDependency; target = {ident("app")}; targetProxy = {ident("proxy")};')
 for target, name, product, kind in [('app','Stillwater','product','application'),('test','StillwaterTests','testproduct','bundle.unit-test')]:
@@ -39,7 +40,7 @@ for scope in ['project','app','test']:
         if scope == 'project':
             values = dict(MACOSX_DEPLOYMENT_TARGET='14.0', SDKROOT='macosx', SWIFT_VERSION='5.0', ONLY_ACTIVE_ARCH='YES' if mode == 'Debug' else 'NO', CLANG_ENABLE_MODULES='YES', CLANG_ENABLE_OBJC_ARC='YES', GCC_C_LANGUAGE_STANDARD='gnu11', ENABLE_STRICT_OBJC_MSGSEND='YES', SWIFT_OPTIMIZATION_LEVEL='-Onone' if mode == 'Debug' else '-O', SWIFT_COMPILATION_MODE='singlefile' if mode == 'Debug' else 'wholemodule', ENABLE_TESTABILITY='YES' if mode == 'Debug' else 'NO', DEBUG_INFORMATION_FORMAT='dwarf' if mode == 'Debug' else 'dwarf-with-dsym', GCC_OPTIMIZATION_LEVEL='0' if mode == 'Debug' else 's')
         elif scope == 'app':
-            values = dict(PRODUCT_NAME='Stillwater', PRODUCT_BUNDLE_IDENTIFIER='app.stillwater.passwords', INFOPLIST_FILE='App/Info.plist', CODE_SIGN_ENTITLEMENTS='App/Stillwater.entitlements', CODE_SIGN_STYLE='Automatic', ENABLE_APP_SANDBOX='YES', ENABLE_HARDENED_RUNTIME='YES', COMBINE_HIDPI_IMAGES='YES', LD_RUNPATH_SEARCH_PATHS='$(inherited) @executable_path/../Frameworks', SWIFT_EMIT_LOC_STRINGS='YES')
+            values = dict(PRODUCT_NAME='Stillwater', ASSETCATALOG_COMPILER_APPICON_NAME='AppIcon', PRODUCT_BUNDLE_IDENTIFIER='app.stillwater.passwords', INFOPLIST_FILE='App/Info.plist', CODE_SIGN_ENTITLEMENTS='App/Stillwater.entitlements', CODE_SIGN_STYLE='Automatic', ENABLE_APP_SANDBOX='YES', ENABLE_HARDENED_RUNTIME='YES', COMBINE_HIDPI_IMAGES='YES', LD_RUNPATH_SEARCH_PATHS='$(inherited) @executable_path/../Frameworks', SWIFT_EMIT_LOC_STRINGS='YES')
         else:
             values = dict(PRODUCT_NAME='StillwaterTests', PRODUCT_BUNDLE_IDENTIFIER='app.stillwater.passwords.tests', GENERATE_INFOPLIST_FILE='YES', CODE_SIGN_STYLE='Automatic', TEST_HOST='$(BUILT_PRODUCTS_DIR)/Stillwater.app/Contents/MacOS/Stillwater', BUNDLE_LOADER='$(TEST_HOST)', LD_RUNPATH_SEARCH_PATHS='$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks')
         obj(scope+mode, 'isa = XCBuildConfiguration; buildSettings = {' + ''.join(f'{k} = {q(v)};' for k,v in values.items()) + f'}}; name = {mode};')
